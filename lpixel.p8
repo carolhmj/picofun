@@ -2,57 +2,111 @@ pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
 
-Turtle = {}
+cos1 = cos function cos(angle) return cos1(angle/360) end
+sin1 = sin function sin(angle) return sin1(-angle/360) end
 
-function Turtle:new(d, m)
-	local newTurtle = {x = 0, y = 0, a = 0, d = d, m = m}
-	self.__index = self
-	return setmetatable(newTurtle, self)
+-- * lsystem production module * --
+function lystem_deriv(initial, rules)
+	return {
+		initial = initial,
+		rules = rules
+	}
 end
 
-function Turtle:process(rule)
-	local draw = true
-	local prevState = {x = self.x, y = self.y}
+function produce(lsystem, steps)
+	local string = lsystem.initial
+	for i=1,steps do
+		string = derive(string, lsystem.rules)
+	end
+	return string
+end
 
+function derive(string, rules)
+	local deriv_string = ""
+	for i=1,#string do
+		local r = sub(string, i, i)
+		deriv_string = deriv_string..(rules[r] and rules[r] or r)
+	end
+	return deriv_string
+end	
+
+-- * lsystem geometric module *--
+function turtle(x, y, a, draw)
+	return {x = x, y = y, a = a, draw = draw}
+end
+
+function lsystem_interp(initial, d, m) 
+	return {
+		d = d,
+		m = m,
+		states = {initial}
+	}
+end
+
+function push_state(lsystem_interp, new_state) 
+	lsystem_interp.states[#lsystem_interp.states+1] = new_state
+end	
+
+function process(lsystem_interp, rule)
+	local last_state = lsystem_interp.states[#lsystem_interp.states]
+	local new_state = {}
 	if rule == 'F' then
-		self:moveForward()	
-	elseif rule == 'f' then
-		draw = false
-		self:moveForward()
+		new_state = moveForward(last_state, lsystem_interp.d, true)	
+	elseif rule == 'G' then
+		new_state = moveForward(last_state, lsystem_interp.d, false)
 	elseif rule == '+' then
-		self:rotate(true)
+		new_state = rotate(last_state, lsystem_interp.m, true)
 	elseif rule == '-' then
-		self:rotate(false)
+		new_state = rotate(last_state, lsystem_interp.m, false)
 	end
 
-	if draw then
-		self:draw(prevState)
-	end	 
+	push_state(lsystem_interp, new_state)
 end
 
-function Turtle:moveForward()
-	self.x = self.x + self.d*cos(self.a)
-	self.y = self.y + self.d*sin(self.a)
+function moveForward(turtle, dist, draw)
+	local new_state = {
+		x = turtle.x + dist*cos(turtle.a),
+		y = turtle.y + dist*sin(turtle.a),
+		a = turtle.a,
+		draw = draw
+	}
+	return new_state
 end
 
-function Turtle:rotate(positive)
+function rotate(turtle, angle, positive)
 	local sign = positive and 1 or -1
-	self.a = self.a + sign*self.m 
+	local new_state = {
+		x = turtle.x,
+		y = turtle.y,
+		a = turtle.a + sign*angle,
+		draw = false
+	}
+	return new_state 
 end
 
-function Turtle:draw(prevState)
-	draw_raster(prevState, self)
+function draw(lsystem_interp)
+	for i=1,#lsystem_interp.states do
+		-- print('x '..lsystem_interp.states[i].x..
+		-- 	  ' y '..lsystem_interp.states[i].y..
+		-- 	  ' a '..lsystem_interp.states[i].a)
+		-- check if there is a next state
+		if i+1 <= #lsystem_interp.states and 
+		   lsystem_interp.states[i+1].draw == true then
+			draw_raster(lsystem_interp.states[i], lsystem_interp.states[i+1])   
+		end
+	end	
 end	 	
+
+-- * graphics *--
+function point(x,y)
+	return {x = x, y = y}
+end
 
 function draw_raster(p0,p1)
 	local raster0 = raster(p0)
 	local raster1 = raster(p1)
 	line(raster0.x, raster0.y, raster1.x, raster1.y)
-end	  
-
-function point(x,y)
-	return {x = x, y = y}
-end
+end	 
 
 function raster(t) 
 	local norm_x = (t.x + WIDTH/2) / WIDTH
@@ -65,12 +119,21 @@ end
 function _init()
 	WIDTH = 128
 	HEIGHT = 128
-	turtle = Turtle:new(10, 0.1)
+	local rules = {
+		['F'] = 'F+G-FF+F+FF+FG+FF-G+FF-F-FF-FG-FFF',
+		['G'] = 'GGGGGG'
+	}
+	prod_system = lystem_deriv('F+F+F+F', rules)
+	result = produce(prod_system, 2) 
+	geom_system = lsystem_interp(turtle(-20,-20,0), 2, 90)
+	for i=1,#result do
+		process(geom_system, sub(result,i,i))	
+	end
 end
 
 function _draw()
 	cls()
-	turtle:process('F')
-	-- turtle:process('+')
-	-- turtle:process('F')
+	draw(geom_system)
+	print(result)
+	-- print(cos(-90))
 end	
