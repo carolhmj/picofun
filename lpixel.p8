@@ -136,13 +136,13 @@ function _init()
 	WIDTH = 128
 	HEIGHT = 128
 	local rules = {
-		-- ['F'] = 'F-F+F+FF-F-F+F'
-		["F"] = "F+G-FF+F+FF+FG+FF-G+FF-F-FF-FG-FFF",
-		["G"] = "GGGGGG"
+		['F'] = 'F-F+F+FF-F-F+F'
+		-- ["F"] = "F+G-FF+F+FF+FG+FF-G+FF-F-FF-FG-FFF",
+		-- ["G"] = "GGGGGG"
 	}
-	prod_system = lystem_deriv('F-F-F-F', rules)
+	prod_system = lystem_deriv('F+F+F+F', rules)
 	result = produce(prod_system, 2) 
-	geom_system = lsystem_interp(turtle(-30,30,0), 3, 90)
+	geom_system = lsystem_interp(turtle(0,0,0), 3, 90)
 	for i=1,#result do
 	-- 	print(i)
 		process(geom_system, sub(result,i,i))	
