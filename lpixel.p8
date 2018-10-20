@@ -84,7 +84,7 @@ function rotate(turtle, angle, positive)
 	return new_state 
 end
 
-function draw(lsystem_interp)
+function draw(lsystem_interp, centroid)
 	for i=1,#lsystem_interp.states do
 		-- print('x '..lsystem_interp.states[i].x..
 		-- 	  ' y '..lsystem_interp.states[i].y..
@@ -92,24 +92,26 @@ function draw(lsystem_interp)
 		-- check if there is a next state
 		if i+1 <= #lsystem_interp.states and 
 		   lsystem_interp.states[i+1].draw == true then
-			draw_raster(lsystem_interp.states[i], lsystem_interp.states[i+1])   
+			draw_raster(lsystem_interp.states[i], 
+						lsystem_interp.states[i+1],
+						centroid)   
 		end
 	end	
 end	 	
 
 -- * graphics *--
-function point(x,y)
+function point(x, y)
 	return {x = x, y = y}
 end
 
-function draw_raster(p0,p1)
-	local raster0 = raster(p0)
-	local raster1 = raster(p1)
+function draw_raster(p0, p1, centroid)
+	local raster0 = raster(p0, centroid)
+	local raster1 = raster(p1, centroid)
 	line(raster0.x, raster0.y, raster1.x, raster1.y)
 end	 
 
-function raster(t)
-	local centroid = find_centroid(geom_system.states)
+function raster(t, centroid)
+	-- local centroid = find_centroid(geom_system.states)
 	local cx = t.x-centroid.x
 	local cy = t.y-centroid.y 
 	local norm_x = (cx + WIDTH/2) / WIDTH
@@ -147,11 +149,12 @@ function _init()
 	-- 	print(i)
 		process(geom_system, sub(result,i,i))	
 	end
+	geom_system_centroid = find_centroid(geom_system.states)
 end
 
 function _draw()
 	cls()
-	draw(geom_system)
+	draw(geom_system, geom_system_centroid)
 	print(result)
 	-- local centroid = find_centroid(geom_system.states)
 	-- print(centroid.x..' '..centroid.y)
