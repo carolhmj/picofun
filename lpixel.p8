@@ -108,25 +108,43 @@ function draw_raster(p0,p1)
 	line(raster0.x, raster0.y, raster1.x, raster1.y)
 end	 
 
-function raster(t) 
-	local norm_x = (t.x + WIDTH/2) / WIDTH
-	local norm_y = (t.y + HEIGHT/2) / HEIGHT
+function raster(t)
+	local centroid = find_centroid(geom_system.states)
+	local cx = t.x-centroid.x
+	local cy = t.y-centroid.y 
+	local norm_x = (cx + WIDTH/2) / WIDTH
+	local norm_y = (cy + HEIGHT/2) / HEIGHT
 	local raster_x = ceil(norm_x*WIDTH)
 	local raster_y = ceil((1-norm_y)*HEIGHT)
 	return point(raster_x, raster_y)   
+end
+
+function find_centroid(states) 
+	local centroid = point(0,0)
+	local n = 0
+	for state in all(states) do
+		if state.draw then
+			centroid = point(centroid.x + state.x, 
+							 centroid.y + state.y)
+			n = n + 1
+		end
+	end
+	return point(centroid.x/n, centroid.y/n)	
 end
 
 function _init()
 	WIDTH = 128
 	HEIGHT = 128
 	local rules = {
-		['F'] = 'F+G-FF+F+FF+FG+FF-G+FF-F-FF-FG-FFF',
-		['G'] = 'GGGGGG'
+		-- ['F'] = 'F-F+F+FF-F-F+F'
+		["F"] = "F+G-FF+F+FF+FG+FF-G+FF-F-FF-FG-FFF",
+		["G"] = "GGGGGG"
 	}
-	prod_system = lystem_deriv('F+F+F+F', rules)
+	prod_system = lystem_deriv('F-F-F-F', rules)
 	result = produce(prod_system, 2) 
-	geom_system = lsystem_interp(turtle(-20,-20,0), 2, 90)
+	geom_system = lsystem_interp(turtle(-30,30,0), 3, 90)
 	for i=1,#result do
+	-- 	print(i)
 		process(geom_system, sub(result,i,i))	
 	end
 end
@@ -135,5 +153,6 @@ function _draw()
 	cls()
 	draw(geom_system)
 	print(result)
-	-- print(cos(-90))
+	-- local centroid = find_centroid(geom_system.states)
+	-- print(centroid.x..' '..centroid.y)
 end	
