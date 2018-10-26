@@ -171,7 +171,7 @@ function find_centroid(states)
 	return point(centroid.x/n, centroid.y/n)	
 end
 
--- * keeps both lsystem interpretations together
+--* keeps both lsystem interpretations together *--
 function lsystem(grammar, geometric, n_deriv) 
 	return {
 		grammar = grammar,
@@ -234,8 +234,18 @@ demos = {
 						 ["Y"]="YFXFY-F-XFYFX+F+YFXFY"}),
 		lsystem_geom(turtle(0,0,0), 3, 90),
 		3
+		),
+	hexa_gosper = lsystem(
+		lsystem_grammar("XF",
+						{["X"]="X+YF++YF-FX--FXFX-YF+",
+						 ["Y"]="-FX+YFYF++YF+FX--FX-Y"}),
+		lsystem_geom(turtle(0,0,0), 4, 60),
+		3
 		)
 }
+
+demo_states = {"sierpinski", "koch", "snowflake",
+"triangle", "gosper", "square_sierpinski", "peano", "hexa_gosper"}
 
 function _init()
 	WIDTH = 128
@@ -243,10 +253,42 @@ function _init()
 	for k,v in pairs(demos) do
 		produce_lsystem(v)
 	end
-	curr = 0	
+	curr = 1
+	last_status_change = 0  	
 end
 
 function _draw()
 	cls()
-	draw_lsystem(demos.peano)
-end	
+	print(demo_states[curr], 40, 0, 7 + curr)
+	draw_lsystem(demos[demo_states[curr]])
+end
+
+function _update()
+	last_status_change = last_status_change + 1
+
+	if last_status_change > 10 then 
+		-- check for button presses
+		if btn(0) then -- left button
+			demos_to_left()
+			last_status_change = 0		
+		elseif btn(1) then -- right button
+			demos_to_right()
+			last_status_change = 0	
+		end
+	end
+			
+end
+
+function demos_to_left()
+	curr = curr - 1
+	if curr < 1 then
+		curr = #demo_states
+	end
+end
+
+function demos_to_right()
+	curr = curr + 1
+	if curr > #demo_states then
+		curr = 1
+	end
+end			
