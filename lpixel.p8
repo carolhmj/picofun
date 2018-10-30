@@ -52,10 +52,10 @@ function process(lsystem_geom, rule)
 	local last_state = lsystem_geom.states[#lsystem_geom.states]
 	local new_state = {}
 	local valid = true
-	if rule == 'F' then
-		new_state = moveForward(last_state, lsystem_geom.d, true)	
-	elseif rule == 'G' then
-		new_state = moveForward(last_state, lsystem_geom.d, false)
+	if rule == 'f' then
+		new_state = moveforward(last_state, lsystem_geom.d, true)	
+	elseif rule == 'g' then
+		new_state = moveforward(last_state, lsystem_geom.d, false)
 	elseif rule == '+' then
 		new_state = rotate(last_state, lsystem_geom.m, true)
 	elseif rule == '-' then
@@ -68,7 +68,7 @@ function process(lsystem_geom, rule)
 	end	
 end
 
-function moveForward(turtle, dist, draw)
+function moveforward(turtle, dist, draw)
 	local new_state = {
 		x = turtle.x + dist*cos(turtle.a),
 		y = turtle.y + dist*sin(turtle.a),
@@ -149,11 +149,11 @@ function to_center(p, centroid)
 end	 
 
 function to_raster(t, centroid)
-	local norm_x = (t.x + WIDTH/2) / WIDTH
-	local norm_y = (t.y + HEIGHT/2) / HEIGHT
+	local norm_x = (t.x + width/2) / width
+	local norm_y = (t.y + height/2) / height
 
-	local raster_x = ceil(norm_x*WIDTH)
-	local raster_y = ceil((1-norm_y)*HEIGHT)
+	local raster_x = ceil(norm_x*width)
+	local raster_y = ceil((1-norm_y)*height)
 	
 	return point(raster_x, raster_y)   
 end
@@ -169,7 +169,7 @@ function find_centroid(states)
 		end
 	end
 	return point(centroid.x/n, centroid.y/n)	
-end
+end 
 
 --* keeps both lsystem interpretations together *--
 function lsystem(grammar, geometric, n_deriv) 
@@ -195,50 +195,50 @@ end
 -- * demo systems *--
 demos = {
 	sierpinski = lsystem(
-		lsystem_grammar("YF",
-						{["X"] = "YF+XF+Y", ["Y"] = "XF-YF-X"}),
+		lsystem_grammar("yf",
+						{["x"] = "yf+xf+y", ["y"] = "xf-yf-x"}),
 		lsystem_geom(turtle(0,0,0), 3, 60), 
 		5),
 	koch = lsystem(
-		lsystem_grammar("F-F-F-F",
-						{["F"] = "F-F+F+FF-F-F+F"}),
+		lsystem_grammar("f-f-f-f",
+						{["f"] = "f-f+f+ff-f-f+f"}),
 		lsystem_geom(turtle(0,0,0), 4, 90),
 		2),
 	snowflake = lsystem(
-		lsystem_grammar("F++F++F",
-						{["F"]="F-F++F-F"}),
+		lsystem_grammar("f++f++f",
+						{["f"]="f-f++f-f"}),
 		lsystem_geom(turtle(0,0,0), 0.9, 60),
 		4),
 	triangle = lsystem(
-		lsystem_grammar("F+F+F",
-						{["F"]="F-F+F"}),
+		lsystem_grammar("f+f+f",
+						{["f"]="f-f+f"}),
 		lsystem_geom(turtle(0,0,0), 10, 120),
 		4
 		),
 	gosper = lsystem(
-		lsystem_grammar("-YF",
-						{["X"]="XFX-YF-YF+FX+FX-YF-YFFX+YF+FXFXYF-FX+YF+FXFX+YF-FXYF-YF-FX+FX+YFYF-",
-						 ["Y"]="+FXFX-YF-YF+FX+FXYF+FX-YFYF-FX-YF+FXYFYF-FX-YFFX+FX+YF-YF-FX+FX+YFY"}),
+		lsystem_grammar("-yf",
+						{["x"]="xfx-yf-yf+fx+fx-yf-yffx+yf+fxfxyf-fx+yf+fxfx+yf-fxyf-yf-fx+fx+yfyf-",
+						 ["y"]="+fxfx-yf-yf+fx+fxyf+fx-yfyf-fx-yf+fxyfyf-fx-yffx+fx+yf-yf-fx+fx+yfy"}),
 		lsystem_geom(turtle(0,0,0), 4, 90),
 		2
 		),
 	square_sierpinski = lsystem(
-		lsystem_grammar("F+XF+F+XF",
-						{["X"]="XF-F+F-XF+F+XF-F+F-X"}),
+		lsystem_grammar("f+xf+f+xf",
+						{["x"]="xf-f+f-xf+f+xf-f+f-x"}),
 		lsystem_geom(turtle(0,0,0), 4, 90),
 		3
 		),
 	peano = lsystem(
-		lsystem_grammar("X",
-						{["X"]="XFYFX+F+YFXFY-F-XFYFX",
-						 ["Y"]="YFXFY-F-XFYFX+F+YFXFY"}),
+		lsystem_grammar("x",
+						{["x"]="xfyfx+f+yfxfy-f-xfyfx",
+						 ["y"]="yfxfy-f-xfyfx+f+yfxfy"}),
 		lsystem_geom(turtle(0,0,0), 3, 90),
 		3
 		),
 	hexa_gosper = lsystem(
-		lsystem_grammar("XF",
-						{["X"]="X+YF++YF-FX--FXFX-YF+",
-						 ["Y"]="-FX+YFYF++YF+FX--FX-Y"}),
+		lsystem_grammar("xf",
+						{["x"]="x+yf++yf-fx--fxfx-yf+",
+						 ["y"]="-fx+yfyf++yf+fx--fx-y"}),
 		lsystem_geom(turtle(0,0,0), 4, 60),
 		3
 		)
@@ -248,18 +248,30 @@ demo_states = {"sierpinski", "koch", "snowflake",
 "triangle", "gosper", "square_sierpinski", "peano", "hexa_gosper"}
 
 function _init()
-	WIDTH = 128
-	HEIGHT = 128
+	width = 128
+	height = 128
 	for k,v in pairs(demos) do
 		produce_lsystem(v)
 	end
 	curr = 1
-	last_status_change = 0  	
+	last_status_change = 0
+	first_press = false  	
 end
 
 function _draw()
 	cls()
-	print(demo_states[curr], 40, 0, 7 + curr)
+	if not first_press then
+		-- print('cool lsystems demo')
+		spr(1, 20, 20)
+		spr(2, 28, 20)
+		spr(3, 36, 20)
+		spr(4, 44, 20)
+		spr(5, 53, 20)
+		spr(1, 61, 20)
+		spr(6, 69, 20)
+	else 	
+		print(demo_states[curr], 40, 0, 7 + curr)
+	end	
 	draw_lsystem(demos[demo_states[curr]])
 end
 
@@ -276,7 +288,12 @@ function _update()
 			last_status_change = 0	
 		end
 	end
-			
+
+	if not first_press then
+		if btn(0) or btn(1) then -- first button was pressed
+			first_press = true
+		end
+	end				
 end
 
 function demos_to_left()
@@ -292,3 +309,12 @@ function demos_to_right()
 		curr = 1
 	end
 end			
+__gfx__
+00000000077000000777777000077000770000770777777007777700000000000000000000000000000000000000000000000000000000000000000000000000
+00000000077000000777777000000000777007770777777007777700000000000000000000000000000000000000000000000000000000000000000000000000
+00700700077000000770077000077000077777700770000007700000000000000000000000000000000000000000000000000000000000000000000000000000
+00077000077000000770077000077000007777000777777007777700000000000000000000000000000000000000000000000000000000000000000000000000
+00077000077000000777777000077000007777000777777000777770000000000000000000000000000000000000000000000000000000000000000000000000
+00700700077000000777777000077000077777700770000000000770000000000000000000000000000000000000000000000000000000000000000000000000
+00000000077777700770000000077000777007770777777007777770000000000000000000000000000000000000000000000000000000000000000000000000
+00000000077777700770000000077000770000770777777007777700000000000000000000000000000000000000000000000000000000000000000000000000
